@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+playwright-report/
+test-results/
+.env
+.env.*
+*.log
+watchdog-output/
+docs/RESEARCH_RADAR_WATCHDOG_*_REPORT.md

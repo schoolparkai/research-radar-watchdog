@@ -1,0 +1,47 @@
+name: Research Radar Watchdog
+
+on:
+  schedule:
+    # Offset from GOKPOP's :17 schedule.
+    # UTC 02:43, 08:43, 14:43, 20:43 (KST 11:43, 17:43, 23:43, 05:43).
+    - cron: "43 2,8,14,20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-radar-watchdog
+  cancel-in-progress: false
+
+jobs:
+  check-site:
+    # Scheduled runs remain disabled until the repository variable is explicitly true.
+    # Manual workflow_dispatch runs are always available for commissioning tests.
+    if: github.event_name == 'workflow_dispatch' || vars.RESEARCH_RADAR_WATCHDOG_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out watchdog repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Install Playwright Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Run watchdog safety tests
+        run: python -m pytest -q
+
+      - name: Check Research Radar and wake only if sleeping
+        run: python -m watchdog.check_site
